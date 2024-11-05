@@ -6,6 +6,7 @@ import platform
 import shutil
 import sys
 import argparse
+from os.path import basename, splitext, abspath
 
 from subprocess import call, STDOUT
 try:
@@ -384,13 +385,14 @@ def main():
     paths_target_apk_files = list()
     paths_target_apk_dirs = list()
     for apk_file_name in filenames:
-        original_file_name, original_file_extension = file_split_name_and_extension(apk_file_name)
-        apk_file_abs_path = get_param_apk_abs_path(apk_number)
+        original_file_name, original_file_extension = splitext(apk_file_name)
+        apk_file_abs_path = abspath(apk_file_name)
         files_apk.append(apk_file_name)
+
         files_apk_abs_paths.append(apk_file_abs_path)
         files_apk_original_names.append(original_file_name)
-        target_apk_file_abs_path = os.path.join(path_dir_tmp, apk_file_name)
-        target_apk_dir_abs_path = os.path.join(path_dir_tmp, original_file_name)
+        target_apk_file_abs_path = os.path.join(path_dir_tmp, basename(apk_file_name))
+        target_apk_dir_abs_path = os.path.join(path_dir_tmp, basename(original_file_name))
         paths_target_apk_files.append(target_apk_file_abs_path)
         paths_target_apk_dirs.append(target_apk_dir_abs_path)
         shutil.copy(apk_file_abs_path, target_apk_file_abs_path)
