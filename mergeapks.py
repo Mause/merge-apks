@@ -5,6 +5,7 @@ import os
 import platform
 import shutil
 import sys
+import argparse
 
 from subprocess import call, STDOUT
 try:
@@ -29,27 +30,20 @@ def print_help():
     print("")
 
 
-def get_param_apk_file_name(apk_number):
-    return sys.argv[apk_number]
-
-
-def get_param_apk_abs_path(apk_number):
-    return os.path.abspath(get_param_apk_file_name(apk_number))
-
-
 def check_sys_args():
-    if len(sys.argv) < 3:
-        return False
+    parser = argparse.ArgumentParser(description='Merge multiple APK files into one')
+    parser.add_argument('apk_files', nargs='+', type=str, help='APK files to merge')
 
-    for apk_number in range(1, len(sys.argv)):
-        apk_file_name = get_param_apk_file_name(apk_number)
+    filenames = parser.parse_args().apk_files
+
+    for apk_file_name in filenames:
         if not apk_file_name.endswith(const_ext_apk):
             return False
         abspath_to_apk_file = os.path.abspath(apk_file_name)
         if not os.path.exists(abspath_to_apk_file):
             return False
 
-    return True
+    return filenames
 
 
 def execute_command_os_system(command):
@@ -359,9 +353,7 @@ def copy_single_apk_to_working_dir(path_to_tmp_dir, path_to_working_dir, target_
 
 
 def main():
-    if not check_sys_args():
-        print_help()
-        exit(-1)
+    filenames = check_sys_args()
 
     tested_binary = "apktool"
     if not check_if_executable_exists_in_path(tested_binary):
@@ -385,16 +377,13 @@ def main():
 
     cwd = os.path.abspath(os.path.curdir)
     path_dir_tmp = create_tmp_dir(cwd)
-    apk_count = len(sys.argv) - 1
-    apk_numbers_range = range(1, len(sys.argv))
 
     files_apk = list()
     files_apk_abs_paths = list()
     files_apk_original_names = list()
     paths_target_apk_files = list()
     paths_target_apk_dirs = list()
-    for apk_number in apk_numbers_range:
-        apk_file_name = get_param_apk_file_name(apk_number)
+    for apk_file_name in filenames:
         original_file_name, original_file_extension = file_split_name_and_extension(apk_file_name)
         apk_file_abs_path = get_param_apk_abs_path(apk_number)
         files_apk.append(apk_file_name)
@@ -407,7 +396,7 @@ def main():
         shutil.copy(apk_file_abs_path, target_apk_file_abs_path)
 
     for index, target_apk in enumerate(paths_target_apk_files):
-        unpack_apk(path_dir_tmp, target_apk, index + 1, apk_count)
+        unpack_apk(path_dir_tmp, target_apk, index + 1, len(filenames))
 
     path_apk_main = paths_target_apk_dirs[0]
     paths_apk_secondary = paths_target_apk_dirs[1:]
